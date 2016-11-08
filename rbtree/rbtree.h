@@ -6,15 +6,23 @@
 #define Rbt_Malloc malloc
 #define Rbt_Free free
 
+typedef int(*tdRbtCmpFun)(const void*, const void*);
+typedef void(*tdDestroyKeyFun)(void* a);
+typedef void(*tdDestroyValueFun)(void* a);
+
+typedef void(*tdForeachFun)(struct RbtIter*);
+
 struct RBtree;
-struct RBT_Iter
+
+struct RbtIter
 {
 	void* key;
 	void* value;
 };
 
 // 创建一个rbtree
-struct RBtree* rbt_create();
+struct RBtree* rbt_create(tdRbtCmpFun cmp, 
+	tdDestroyKeyFun dk, tdDestroyValueFun dv);
 
 // 销毁一个rbtree
 void rbt_destory(struct RBtree*);
@@ -23,16 +31,16 @@ void rbt_destory(struct RBtree*);
 void rbt_insert(struct RBtree*, void*, void*);
 
 // 删除一个key-value
-void rbt_remove(struct RBtree*, int);
+void rbt_remove(struct RBtree*, void*);
 
 // 根据key查找value
-void* rbt_find(struct RBtree*, int);
+void* rbt_find(struct RBtree*, void*);
 
 // 返回rbtree的size
 int rbt_size(struct RBtree*);
 
 // 遍历rbtree
-void rbt_foreach(struct RBtree*, void(*f)(struct RBT_Iter*));
+void rbt_foreach(struct RBtree*, tdForeachFun f);
 
 #endif // !REDBLACK_TREE_H_
 

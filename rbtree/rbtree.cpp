@@ -18,16 +18,12 @@ struct rbnode
 	rbnode *left, *right, *parent;
 };
 
-// 定义全局唯一的叶子节点
-static rbnode null_node = { RBN_COR_BLACK };
-#define NIL &null_node
-
 // 定义红黑树结构
 struct RBtree
 {
-	int(*cmp_fun)(const void* a, const void* b);
-	void(*destroy_key_fun)(void* a);
-	void(*destroy_value_fun)(void* a);
+	tdRbtCmpFun cmp;
+	tdDestroyKeyFun destroy_key;
+	tdDestroyValueFun destroy_value;
 
 	size_t size;
 	struct rbnode *root;
@@ -40,13 +36,13 @@ struct RBtree
 static void 
 left_ratation(RBtree* rbt, struct rbnode* x)
 {
-	assert(x->right != NIL);
+	assert(x->right != rbt->nil);
 	struct rbnode* y = x->right;
 	x->right = y->left;
-	if (y->left != NIL)
+	if (y->left != rbt->nil)
 		y->left->parent = x;
 	y->parent = x->parent;
-	if (x->parent == NIL)
+	if (x->parent == rbt->nil)
 		rbt->root = y;
 	else if (x == x->parent->left)
 		x->parent->left = y;
@@ -62,13 +58,13 @@ left_ratation(RBtree* rbt, struct rbnode* x)
 static void 
 right_ratation(RBtree* rbt, struct rbnode* x)
 {
-	assert(x->left != NIL);
+	assert(x->left != rbt->nil);
 	struct rbnode* y = x->left;
 	x->left = y->right;
-	if (y->right != NIL)
+	if (y->right != rbt->nil)
 		y->right->parent = x;
 	y->parent = x->parent;
-	if (x->parent == NIL)
+	if (x->parent == rbt->nil)
 		rbt->root = y;
 	else if (x == x->parent->right)
 		x->parent->right = y;
@@ -147,22 +143,24 @@ rbt_insert_fixup(RBtree* rbt, struct rbnode* z)
 static void 
 rbt_insert_node(RBtree* rbt, struct rbnode* z)
 {
-	struct rbnode* y = NIL;
+	int r;
+	struct rbnode* y = rbt->nil;
 	struct rbnode* x = rbt->root;
-	while (x != NIL)
+	while (x != rbt->nil)
 	{
 		y = x;
-		x = z->key < x->key ? x->left : x->right;
+		r = (rbt->cmp)(z->key, x->key);
+		x = (r == -1) ? x->left : x->right;
 	}
 	z->parent = y;
-	if (y == NIL)
+	if (y == rbt->nil)
 		rbt->root = z;
 	else if (z->key < y->key)
 		y->left = z;
 	else
 		y->right = z;
-	z->left = NIL;
-	z->right = NIL;
+	z->left = rbt->nil;
+	z->right = rbt->nil;
 	z->color = RBN_COR_RED;
 	rbt_insert_fixup(rbt, z);
 }
@@ -170,7 +168,7 @@ rbt_insert_node(RBtree* rbt, struct rbnode* z)
 static void 
 rbt_transplant(RBtree* rbt, struct rbnode* u, struct rbnode* v)
 {
-	if (u->parent == NIL)
+	if (u->parent == rbt->nil)
 		rbt->root = v;
 	else if (u == u->parent->left)
 		u->parent->left = v;
@@ -180,17 +178,17 @@ rbt_transplant(RBtree* rbt, struct rbnode* u, struct rbnode* v)
 }
 
 static struct rbnode*
-rbt_min_node(struct rbnode* x)
+rbt_min_node(RBtree* rbt, struct rbnode* x)
 {
-	while (x->left != NIL)
+	while (x->left != rbt->nil)
 		x = x->left;
 	return x;
 }
 
 static struct rbnode*
-rbt_max_node(struct rbnode* x)
+rbt_max_node(RBtree* rbt, struct rbnode* x)
 {
-	while (x->right != NIL)
+	while (x->right != rbt->nil)
 		x = x->right;
 	return x;
 }
@@ -272,19 +270,19 @@ rbt_delete_node(RBtree* rbt, struct rbnode* z)
 {
 	struct rbnode *x, *y = z;
 	int color = y->color;
-	if (z->left == NIL)
+	if (z->left == rbt->nil)
 	{
 		x = z->right;
 		rbt_transplant(rbt, z, z->right);
 	}
-	else if (z->right == NIL)
+	else if (z->right == rbt->nil)
 	{
 		x = z->left;
 		rbt_transplant(rbt, z, z->left);
 	}
 	else
 	{
-		y = rbt_min_node(z->right);
+		y = rbt_min_node(rbt, z->right);
 		color = y->color;
 		x = y->right;
 		if (y->parent != z)
@@ -304,42 +302,66 @@ rbt_delete_node(RBtree* rbt, struct rbnode* z)
 }
 
 struct rbnode*
-rbt_find_node(struct RBtree* rbt, int k)
+rbt_find_node(struct RBtree* rbt, void* k)
 {
+	int r;
 	struct rbnode* x = rbt->root;
-	while (x != NIL && k != x->key)
-		x = k < x->key ? x->left : x->right;
+	while (x != rbt->nil)
+	{
+		r = (rbt->cmp)(k, x->key);
+		if (r == 0)
+			break;
+		else if (r == -1)
+			x = x->left;
+		else if (r == 1)
+			x = x->right;
+		else
+			assert(0);
+	}
 	return x;
 }
 
 static void 
-rbt_dealloc(struct rbnode* r)
+rbt_destroy_helper(struct RBtree* rbt, struct rbnode* r)
 {
-	if (r == NIL)
+	if (r == rbt->nil)
 		return;
-	rbt_dealloc(r->left);
-	rbt_dealloc(r->right);
+	rbt_destroy_helper(rbt, r->left);
+	rbt_destroy_helper(rbt, r->right);
 	Rbt_Free(r);
 }
 
 static void
-rbt_middle_order(struct rbnode* r, void(*f)(struct RBT_Iter*))
+rbt_middle_order(struct RBtree* rbt, 
+	struct rbnode* r, tdForeachFun f)
 {
-	if (r == NIL)
+	if (r == rbt->nil)
 		return;
-	rbt_middle_order(r->left, f);
-	f((RBT_Iter*)r);
-	rbt_middle_order(r->right, f);
+	rbt_middle_order(rbt, r->left, f);
+	f((RbtIter*)r);
+	rbt_middle_order(rbt, r->right, f);
 }
 
 //=========================== 模块接口 ===========================
 struct RBtree* 
-rbt_create()
+rbt_create(tdRbtCmpFun cmp,
+	tdDestroyKeyFun dk, tdDestroyValueFun dv)
 {
-	struct RBtree* rbt = (struct RBtree*) Rbt_Malloc(sizeof(*rbt));
-	if (rbt == NULL)
-		return rbt;
-	rbt->root = NIL;
+	struct RBtree* rbt;
+	struct rbnode* nil;
+	rbt = (struct RBtree*) Rbt_Malloc(sizeof(*rbt));
+	assert(rbt != NULL);
+	nil = (struct rbnode*)Rbt_Malloc(sizeof(*nil));
+	assert(nil != NULL);
+
+	nil->color = RBN_COR_BLACK;
+	nil->key = nil->value = NULL;
+	nil->parent = nil->left = nil->right = NULL;
+
+	rbt->cmp = cmp;
+	rbt->destroy_key = dk;
+	rbt->destroy_value = dv;
+	rbt->root = rbt->nil = nil;
 	rbt->size = 0;
 	return rbt;
 }
@@ -350,7 +372,8 @@ rbt_destory(struct RBtree* rbt)
 	if (rbt == NULL)
 		return;
 	if (rbt->root)
-		rbt_dealloc(rbt->root);
+		rbt_destroy_helper(rbt, rbt->root);
+	Rbt_Free(rbt->nil);
 	Rbt_Free(rbt);
 }
 
@@ -358,8 +381,7 @@ void
 rbt_insert(struct RBtree* rbt, void* k, void* v)
 {
 	struct rbnode* n = (struct rbnode*)Rbt_Malloc(sizeof(*n));
-	if (n == NULL)
-		return;
+	assert(n != NULL);
 	n->key = k;
 	n->value = v;
 	rbt_insert_node(rbt, n);
@@ -367,20 +389,20 @@ rbt_insert(struct RBtree* rbt, void* k, void* v)
 }
 
 void
-rbt_remove(struct RBtree* rbt, int k)
+rbt_remove(struct RBtree* rbt, void* k)
 {
 	struct rbnode* z = rbt_find_node(rbt, k);
-	if (z == NIL)
+	if (z == rbt->nil)
 		return;
 	rbt_delete_node(rbt, z);
 	rbt->size -= 1;
 }
 
 void* 
-rbt_find(struct RBtree* rbt, int k)
+rbt_find(struct RBtree* rbt, void* k)
 {
 	struct rbnode* x = rbt_find_node(rbt, k);
-	return x == NIL ? NULL : x->value;
+	return x == rbt->nil ? NULL : x->value;
 }
 
 int 
@@ -390,7 +412,7 @@ rbt_size(struct RBtree* rbt)
 }
 
 void
-rbt_foreach(struct RBtree* rbt, void(*f)(struct RBT_Iter*))
+rbt_foreach(struct RBtree* rbt, tdForeachFun f)
 {
-	rbt_middle_order(rbt->root, f);
+	rbt_middle_order(rbt, rbt->root, f);
 }
