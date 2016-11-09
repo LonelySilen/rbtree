@@ -22,8 +22,8 @@ struct rbnode
 struct RBtree
 {
 	tdRbtCmpFun cmp;
-	tdDestroyKeyFun destroy_key;
-	tdDestroyValueFun destroy_value;
+	tdRbtDestroyKeyFun destroy_key;
+	tdRbtDestroyValueFun destroy_value;
 
 	size_t size;
 	struct rbnode *root;
@@ -333,7 +333,7 @@ rbt_destroy_helper(struct RBtree* rbt, struct rbnode* r)
 
 static void
 rbt_middle_order(struct RBtree* rbt, 
-	struct rbnode* r, tdForeachFun f)
+	struct rbnode* r, tdRbtForeachFun f)
 {
 	if (r == rbt->nil)
 		return;
@@ -345,7 +345,7 @@ rbt_middle_order(struct RBtree* rbt,
 //=========================== Ä£¿é½Ó¿Ú ===========================
 struct RBtree* 
 rbt_create(tdRbtCmpFun cmp,
-	tdDestroyKeyFun dk, tdDestroyValueFun dv)
+	tdRbtDestroyKeyFun dk, tdRbtDestroyValueFun dv)
 {
 	struct RBtree* rbt;
 	struct rbnode* nil;
@@ -412,7 +412,7 @@ rbt_size(struct RBtree* rbt)
 }
 
 void
-rbt_foreach(struct RBtree* rbt, tdForeachFun f)
+rbt_foreach(struct RBtree* rbt, tdRbtForeachFun f)
 {
 	rbt_middle_order(rbt, rbt->root, f);
 }

@@ -7,10 +7,10 @@
 #define Rbt_Free free
 
 typedef int(*tdRbtCmpFun)(const void*, const void*);
-typedef void(*tdDestroyKeyFun)(void* a);
-typedef void(*tdDestroyValueFun)(void* a);
+typedef void(*tdRbtDestroyKeyFun)(void* a);
+typedef void(*tdRbtDestroyValueFun)(void* a);
 
-typedef void(*tdForeachFun)(struct RbtIter*);
+typedef void(*tdRbtForeachFun)(struct RbtIter*);
 
 struct RBtree;
 
@@ -22,7 +22,7 @@ struct RbtIter
 
 // 创建一个rbtree
 struct RBtree* rbt_create(tdRbtCmpFun cmp, 
-	tdDestroyKeyFun dk, tdDestroyValueFun dv);
+	tdRbtDestroyKeyFun dk, tdRbtDestroyValueFun dv);
 
 // 销毁一个rbtree
 void rbt_destory(struct RBtree*);
@@ -40,7 +40,7 @@ void* rbt_find(struct RBtree*, void*);
 int rbt_size(struct RBtree*);
 
 // 遍历rbtree
-void rbt_foreach(struct RBtree*, tdForeachFun f);
+void rbt_foreach(struct RBtree*, tdRbtForeachFun f);
 
 #endif // !REDBLACK_TREE_H_
 
