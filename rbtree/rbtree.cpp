@@ -7,10 +7,9 @@
 #define RBN_COR_BLACK 0
 #define RBN_COR_RED 1
 
-// rbtree内部节点
 struct rbnode
 {
-	// same as struct RBT_Iter
+	// same as struct RbtIter
 	void* key;
 	void* value;
 
@@ -18,7 +17,6 @@ struct rbnode
 	rbnode *left, *right, *parent;
 };
 
-// 定义红黑树结构
 struct RBtree
 {
 	tdRbtCmpFun cmp;
@@ -30,9 +28,6 @@ struct RBtree
 	struct rbnode *nil;
 };
 
-//
-// 左旋
-//
 static void 
 left_ratation(RBtree* rbt, struct rbnode* x)
 {
@@ -52,9 +47,6 @@ left_ratation(RBtree* rbt, struct rbnode* x)
 	x->parent = y;
 }
 
-// 
-// 右旋
-//
 static void 
 right_ratation(RBtree* rbt, struct rbnode* x)
 {
@@ -137,9 +129,6 @@ rbt_insert_fixup(RBtree* rbt, struct rbnode* z)
 	rbt->root->color = RBN_COR_BLACK;
 }
 
-//
-// 插入节点算法
-//
 static void 
 rbt_insert_node(RBtree* rbt, struct rbnode* z)
 {
@@ -150,7 +139,7 @@ rbt_insert_node(RBtree* rbt, struct rbnode* z)
 	{
 		y = x;
 		r = (rbt->cmp)(z->key, x->key);
-		x = (r == -1) ? x->left : x->right;
+		x = (r < 0) ? x->left : x->right;
 	}
 	z->parent = y;
 	if (y == rbt->nil)
@@ -309,14 +298,12 @@ rbt_find_node(struct RBtree* rbt, void* k)
 	while (x != rbt->nil)
 	{
 		r = (rbt->cmp)(k, x->key);
-		if (r == 0)
-			break;
-		else if (r == -1)
+		if (r < 0)
 			x = x->left;
-		else if (r == 1)
+		else if (r > 0)
 			x = x->right;
 		else
-			assert(0);
+			break;
 	}
 	return x;
 }
