@@ -1,9 +1,8 @@
-
+ï»¿
 #include "rbtree.h"
 #include <stdlib.h>
 #include <assert.h>
 
-// ¶¨ÒåºìºÚÑÕÉ«
 #define RBN_COR_BLACK 0
 #define RBN_COR_RED 1
 
@@ -329,7 +328,7 @@ rbt_middle_order(struct RBtree* rbt,
 	rbt_middle_order(rbt, r->right, f);
 }
 
-//=========================== Ä£¿é½Ó¿Ú ===========================
+//=========================== æ¨¡å—æ¥å£ ===========================
 struct RBtree* 
 rbt_create(tdRbtCmpFun cmp,
 	tdRbtDestroyKeyFun dk, tdRbtDestroyValueFun dv)

@@ -1,8 +1,8 @@
-
+ï»¿
 #ifndef REDBLACK_TREE_H_
 #define REDBLACK_TREE_H_
 
-// ¶¨ÒåºìºÚÊ÷µÄÄÚ´æ·ÖÅäÄ£¿é
+// å®šä¹‰çº¢é»‘æ ‘çš„å†…å­˜åˆ†é…æ¨¡å—
 #define Rbt_Malloc malloc
 #define Rbt_Free free
 
