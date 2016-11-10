@@ -42,5 +42,6 @@
 *.suo
 *.vcxproj
 *.filters
+*.opendb
 
 *Debug/

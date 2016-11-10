@@ -1,6 +1,5 @@
 ﻿
 #include "rbtree.h"
-#include <stdlib.h>
 #include <assert.h>
 
 #define RBN_COR_BLACK 0
