@@ -10,12 +10,12 @@ int cmp(const void* x, const void* y)
 
 void destroy_key(void* a)
 {
-
+	std::cout << "destroy key: " << a << std::endl;
 }
 
 void destroy_value(void* a)
 {
-
+	std::cout << "destroy val: " << a << std::endl;
 }
 
 int main()

@@ -285,6 +285,9 @@ rbt_delete_node(RBtree* rbt, struct rbnode* z)
 	}
 	if (color == RBN_COR_BLACK)
 		rbt_delete_fixup(rbt, x);
+
+	rbt->destroy_key(z->key);
+	rbt->destroy_value(z->value);
 	Rbt_Free(z);
 }
 
@@ -313,6 +316,9 @@ rbt_destroy_helper(struct RBtree* rbt, struct rbnode* r)
 		return;
 	rbt_destroy_helper(rbt, r->left);
 	rbt_destroy_helper(rbt, r->right);
+
+	rbt->destroy_key(r->key);
+	rbt->destroy_value(r->value);
 	Rbt_Free(r);
 }
 
